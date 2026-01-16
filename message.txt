@@ -1,0 +1,111 @@
+#!/bin/bash
+
+linie=""
+cuv=""
+aux=""
+unu=""
+doi=""
+yamal=""
+
+declare -a matrix
+declare -a mat
+declare -a barca
+
+contor=0
+cnt=0
+niv=0
+
+printspace() {
+  local niv_local="$1"
+  yamal=""
+  local i
+  for ((i=0; i<niv_local*4; i++)); do
+    yamal+=" "
+  done
+}
+
+while IFS= read -r linie; do
+  rest="$linie"
+  while :; do
+    if [[ "$rest" == *">"* ]]; then
+      cuv="${rest%%>*}"     
+      rest="${rest#*>}"      
+
+      last="${cuv: -1}"
+      if [[ "$last" == "}" || "$last" == ";" ]]; then
+        matrix[$contor]="$cuv"
+      else
+        matrix[$contor]="$cuv>"
+      fi
+      ((contor++))
+    else
+      break
+    fi
+  done
+done
+
+for ((i=0; i<contor; i++)); do
+  if [[ -z "${matrix[$i]}" ]]; then
+    continue
+  fi
+  if [[ "${#matrix[$i]}" -eq 1 && "${matrix[$i]}" == ">" ]]; then
+    continue
+  fi
+
+  if [[ "${matrix[$i]}" == *"<"* && "${matrix[$i]:0:1}" != "<" ]]; then
+    aux="${matrix[$i]}"
+    unu="${aux%%<*}"
+    doi="<${aux#*<}"
+
+    mat[$cnt]="$unu"; ((cnt++))
+    mat[$cnt]="$doi"; ((cnt++))
+  else
+    mat[$cnt]="${matrix[$i]}"; ((cnt++))
+  fi
+done
+
+for ((pedri=0; pedri<cnt; pedri++)); do
+  barca[$pedri]="" 
+  s="${mat[$pedri]}"
+  len="${#s}"
+
+  if [[ $len -ge 2 && "${s:0:2}" == "</" ]]; then
+    ((niv--))
+    printspace "$niv"
+    barca[$pedri]="${yamal}${s}"
+  else
+    if [[ $len -ge 2 && "${s:0:1}" == "<" && "${s: -1}" == ">" ]]; then
+      if [[ $len -ge 2 && "${s: -2:1}" == "/" ]]; then
+        printspace "$niv"
+        barca[$pedri]="${yamal}${s}"
+      else
+        if [[ $len -ge 2 && "${s:1:1}" == "!" ]]; then
+          ((niv--))
+          printspace "$niv"
+          barca[$pedri]="${yamal}${s}"
+          ((niv++))
+        else
+          printspace "$niv"
+          barca[$pedri]="${yamal}${s}"
+          ((niv++))
+        fi
+      fi
+    else
+      last="${s: -1}"
+      if [[ "$last" == ";" || "$last" == "}" ]]; then
+        barca[$pedri]="${s}"
+      else
+        printspace "$niv"
+        barca[$pedri]="${yamal}${s}"
+      fi
+    fi
+  fi
+done
+
+for ((ind=0; ind<cnt; ind++)); do
+  if (( cnt - ind == 1 )); then
+    printf "%s" "${barca[$ind]}"
+  else
+    printf "%s\n" "${barca[$ind]}"
+  fi
+done
