@@ -29,7 +29,6 @@ while IFS= read -r linie; do
     if [[ "$rest" == *">"* ]]; then
       cuv="${rest%%>*}"     
       rest="${rest#*>}"      
-
       last="${cuv: -1}"
       if [[ "$last" == "}" || "$last" == ";" ]]; then
         matrix[$contor]="$cuv"
@@ -38,6 +37,11 @@ while IFS= read -r linie; do
       fi
       ((contor++))
     else
+            if [[ -n "$rest" ]]; then
+             matrix[$contor]="$rest"
+            ((contor++))
+          fi
+
       break
     fi
   done
